@@ -1,0 +1,34 @@
+steps:
+  # Bước 1: Cài đặt dependencies bằng Yarn
+  - name: 'node:18'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        yarn install
+    dir: '.'
+
+  # Bước 2: Xây dựng ứng dụng
+  - name: 'node:18'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        yarn run build
+    dir: '.'
+
+  # Bước 3: Xây dựng Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/linhngan/ev-charging-server:$COMMIT_SHA', '.']
+    dir: '.'
+
+  # Bước 4: Đẩy Docker image lên Google Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/linhngan/ev-charging-server:$COMMIT_SHA']
+    dir: '.'
+
+images:
+  - 'gcr.io/linhngan/ev-charging-server:$COMMIT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY  # Hoặc dùng logs_bucket hoặc REGIONAL_USER_OWNED_BUCKET
